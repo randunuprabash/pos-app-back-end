@@ -101,6 +101,31 @@ public class CustomerServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("DELETE Request");
+
+        /* DELETE http://localhost:8080/pos/customers?id=C001 */
+
+        String id = req.getParameter("id");
+
+        if (id == null || !id.matches("C\\d{3}")){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        try (Connection connection = DBConnection.getConnection()) {
+
+            PreparedStatement stm = connection.prepareStatement("DELETE FROM customer WHERE id=?");
+            stm.setString(1, id);
+
+            if (stm.executeUpdate() == 1){
+                resp.setContentType("application/json");
+                resp.getWriter().println(jsonb.toJson("OK"));
+            }else{
+                throw new RuntimeException("Failed to delete the customer");
+            }
+
+        } catch (SQLException exp) {
+            throw new RuntimeException(exp);
+        }
+
     }
 }
