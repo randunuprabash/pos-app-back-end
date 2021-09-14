@@ -1,6 +1,12 @@
 package lk.ijse.dep7.servletposapp.api;
 
 import java.io.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
@@ -8,16 +14,37 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import lk.ijse.dep7.servletposapp.dto.CustomerDTO;
+import lk.ijse.dep7.servletposapp.util.DBConnection;
 
 @WebServlet(urlPatterns = "/customers")
 public class CustomerServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        /* 1. DB Connect */
-        /* 2. Fetch Customers */
-        /* 3. Convert to JSON Array */
-        /* 4. Send back to the client */
+
+        try(Connection connection = DBConnection.getConnection()){
+
+            Statement stm = connection.createStatement();
+            ResultSet rst = stm.executeQuery("SELECT * FROM customer");
+            List<CustomerDTO> customers = new ArrayList<>();
+
+            while (rst.next()){
+                customers.add(new CustomerDTO(rst.getString("id"),
+                        rst.getString("name"),
+                        rst.getString("address")));
+            }
+
+            Jsonb jsonb = JsonbBuilder.create();
+            String json = jsonb.toJson(customers);
+
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+            out.println(json);
+
+        } catch (SQLException throwables) {
+            /* Todo: handle exception */
+            throwables.printStackTrace();
+        }
     }
 
     @Override
