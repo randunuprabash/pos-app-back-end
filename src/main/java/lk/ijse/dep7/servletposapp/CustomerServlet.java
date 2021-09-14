@@ -65,7 +65,18 @@ public class CustomerServlet extends HttpServlet {
             [] JSON Array
 
         * */
-        System.out.println("GET Request");
+
+        resp.setContentType("application/json");
+        PrintWriter out = resp.getWriter();
+
+        Customer customer = new Customer("C001", "Kasun", "Galle");
+
+        Jsonb jsonb = JsonbBuilder.create();
+        String json = jsonb.toJson(customer);
+        System.out.println(json);
+
+        out.println(json);
+
     }
 
     @Override
