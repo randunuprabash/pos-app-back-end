@@ -1,7 +1,11 @@
 package lk.ijse.dep7.servletposapp;
 
 import java.io.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -41,12 +45,56 @@ public class CustomerServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        /*
+            {
+               "id": "C001",
+               "name": 10.25,
+               "status": true,
+               "profilePicture": null,
+               "address": {
+                            "city": "Rathanpura",
+                            "province": "Sabaragmuwa"
+                          }
+            }
+
+            [
+              "IJSE", "ESOFT", 10, 25.25, true, false, null, {"id": "C001"}, [10,20]
+            ]
+
+            {} JSON Object
+            [] JSON Array
+
+        * */
         System.out.println("GET Request");
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("POST Request");
+        if (!req.getContentType().equals("application/json")){
+            /* Todo: send an error message */
+            return;
+        }
+
+//        BufferedReader reader = req.getReader();
+//        String line = null;
+//        String body = "";
+//
+//        while ((line = reader.readLine()) != null){
+//            body += line;
+//        }
+//
+//        System.out.println(body);
+
+        StringBuilder body = new StringBuilder();
+        req.getReader().lines().forEach(l -> body.append(l + "\n"));
+        System.out.println(body.toString());
+
+        Jsonb jsonb = JsonbBuilder.create();
+        Customer customer = jsonb.fromJson(body.toString(), Customer.class);
+        System.out.println(customer.getId());
+        System.out.println(customer.getName());
+        System.out.println(customer.getAddress());
+
     }
 
     @Override

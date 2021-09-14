@@ -36,6 +36,12 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId> <!-- JSON B-->
+            <version>2.0.2</version>
+        </dependency>
     </dependencies>
 
     <build>
