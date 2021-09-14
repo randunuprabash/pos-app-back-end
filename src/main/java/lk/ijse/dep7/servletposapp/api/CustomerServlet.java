@@ -96,7 +96,50 @@ public class CustomerServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("PUT Request");
+
+        if (req.getContentType() == null || !req.getContentType().equals("application/json")) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        try {
+            CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
+
+            if (customer.getId() == null || !customer.getId().matches("C\\d{3}")){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer id can't be empty");
+                return;
+            }else if (customer.getName() == null || customer.getName().trim().isEmpty()){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer name can't be empty");
+                return;
+            }else if(customer.getAddress() == null || customer.getAddress().trim().isEmpty()){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer address can't be empty");
+                return;
+            }
+
+            try (Connection connection = DBConnection.getConnection()) {
+
+                PreparedStatement stm = connection.prepareStatement("UPDATE customer SET name=?, address=? WHERE id=?");
+                stm.setString(1, customer.getName());
+                stm.setString(2, customer.getAddress());
+                stm.setString(3, customer.getId());
+
+                if (stm.executeUpdate() == 1){
+                    resp.setContentType("application/json");
+                    resp.getWriter().println(jsonb.toJson("OK"));
+                }else{
+                    throw new RuntimeException("Failed to update the customer");
+                }
+
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+
+        }catch (JsonbException ex){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        }
+
+
+
     }
 
     @Override
