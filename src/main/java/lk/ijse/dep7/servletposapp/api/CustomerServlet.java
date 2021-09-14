@@ -1,20 +1,20 @@
 package lk.ijse.dep7.servletposapp.api;
 
-import java.io.*;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.dep7.servletposapp.dto.CustomerDTO;
 import lk.ijse.dep7.servletposapp.util.DBConnection;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @WebServlet(urlPatterns = "/customers")
 public class CustomerServlet extends HttpServlet {
@@ -22,13 +22,13 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        try(Connection connection = DBConnection.getConnection()){
+        try (Connection connection = DBConnection.getConnection()) {
 
             Statement stm = connection.createStatement();
             ResultSet rst = stm.executeQuery("SELECT * FROM customer");
             List<CustomerDTO> customers = new ArrayList<>();
 
-            while (rst.next()){
+            while (rst.next()) {
                 customers.add(new CustomerDTO(rst.getString("id"),
                         rst.getString("name"),
                         rst.getString("address")));
@@ -41,38 +41,41 @@ public class CustomerServlet extends HttpServlet {
             PrintWriter out = resp.getWriter();
             out.println(json);
 
-        } catch (SQLException throwables) {
-            /* Todo: handle exception */
-            throwables.printStackTrace();
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (!req.getContentType().equals("application/json")){
-            /* Todo: send an error message */
+
+        if (!req.getContentType().equals("application/json")) {
+            /* Todo: Handle this */
             return;
         }
 
-//        BufferedReader reader = req.getReader();
-//        String line = null;
-//        String body = "";
-//
-//        while ((line = reader.readLine()) != null){
-//            body += line;
-//        }
-//
-//        System.out.println(body);
-
-        StringBuilder body = new StringBuilder();
-        req.getReader().lines().forEach(l -> body.append(l + "\n"));
-        System.out.println(body.toString());
-
+        /* Todo: handle invalid json */
         Jsonb jsonb = JsonbBuilder.create();
-        CustomerDTO customerDTO = jsonb.fromJson(body.toString(), CustomerDTO.class);
-        System.out.println(customerDTO.getId());
-        System.out.println(customerDTO.getName());
-        System.out.println(customerDTO.getAddress());
+        CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
+
+        try (Connection connection = DBConnection.getConnection()) {
+            /* 4. Save the customer */
+            PreparedStatement stm = connection.prepareStatement("INSERT INTO customer (id, name, address) VALUES (?,?,?)");
+            stm.setString(1, customer.getId());
+            stm.setString(2, customer.getName());
+            stm.setString(3, customer.getAddress());
+
+            resp.setContentType("application/json");
+            PrintWriter out = resp.getWriter();
+            if (stm.executeUpdate() == 1){
+                out.println(jsonb.toJson(true));
+            }else{
+                out.println(jsonb.toJson(false));
+            }
+
+        } catch (SQLException exp) {
+            throw new RuntimeException(exp);
+        }
 
     }
 
