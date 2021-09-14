@@ -2,6 +2,7 @@ package lk.ijse.dep7.servletposapp.api;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -49,17 +50,16 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        if (!req.getContentType().equals("application/json")) {
-            /* Todo: Handle this */
+        if (req.getContentType() == null || !req.getContentType().equals("application/json")) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        /* Todo: handle invalid json */
-        Jsonb jsonb = JsonbBuilder.create();
-        CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
-
         try (Connection connection = DBConnection.getConnection()) {
-            /* 4. Save the customer */
+
+            Jsonb jsonb = JsonbBuilder.create();
+            CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
+
             PreparedStatement stm = connection.prepareStatement("INSERT INTO customer (id, name, address) VALUES (?,?,?)");
             stm.setString(1, customer.getId());
             stm.setString(2, customer.getName());
@@ -67,13 +67,15 @@ public class CustomerServlet extends HttpServlet {
 
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
-            if (stm.executeUpdate() == 1){
-                out.println(jsonb.toJson(true));
-            }else{
-                out.println(jsonb.toJson(false));
+            if (stm.executeUpdate() == 1) {
+                out.println(jsonb.toJson(customer.getId()));
+            } else {
+                throw new RuntimeException("Failed to save the customer, try again");
             }
 
-        } catch (SQLException exp) {
+        }catch (JsonbException exp){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        } catch (SQLException|RuntimeException exp) {
             throw new RuntimeException(exp);
         }
 
