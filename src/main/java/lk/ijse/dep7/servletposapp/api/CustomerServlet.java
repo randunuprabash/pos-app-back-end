@@ -2,6 +2,7 @@ package lk.ijse.dep7.servletposapp.api;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbConfig;
 import jakarta.json.bind.JsonbException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
