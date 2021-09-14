@@ -21,6 +21,8 @@ import java.util.List;
 @WebServlet(urlPatterns = "/customers")
 public class CustomerServlet extends HttpServlet {
 
+    private Jsonb jsonb = JsonbBuilder.create();
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
@@ -36,9 +38,8 @@ public class CustomerServlet extends HttpServlet {
                         rst.getString("address")));
             }
 
-            Jsonb jsonb = JsonbBuilder.create();
-            String json = jsonb.toJson(customers);
 
+            String json = jsonb.toJson(customers);
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
             out.println(json);
@@ -58,10 +59,21 @@ public class CustomerServlet extends HttpServlet {
 
         try (Connection connection = DBConnection.getConnection()) {
 
-            Jsonb jsonb = JsonbBuilder.create();
             CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
 
+            if (customer.getId() == null || !customer.getId().matches("C\\d{3}")){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer id can't be empty");
+                return;
+            }else if (customer.getName() == null || customer.getName().trim().isEmpty()){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer name can't be empty");
+                return;
+            }else if(customer.getAddress() == null || customer.getAddress().trim().isEmpty()){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer address can't be empty");
+                return;
+            }
+
             PreparedStatement stm = connection.prepareStatement("INSERT INTO customer (id, name, address) VALUES (?,?,?)");
+
             stm.setString(1, customer.getId());
             stm.setString(2, customer.getName());
             stm.setString(3, customer.getAddress());
