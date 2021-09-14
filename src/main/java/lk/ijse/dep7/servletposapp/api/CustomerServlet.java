@@ -14,17 +14,10 @@ public class CustomerServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        PrintWriter out = resp.getWriter();
-
-        CustomerDTO customerDTO = new CustomerDTO("C001", "Kasun", "Galle");
-
-        Jsonb jsonb = JsonbBuilder.create();
-        String json = jsonb.toJson(customerDTO);
-        System.out.println(json);
-
-        out.println(json);
-
+        /* 1. DB Connect */
+        /* 2. Fetch Customers */
+        /* 3. Convert to JSON Array */
+        /* 4. Send back to the client */
     }
 
     @Override
