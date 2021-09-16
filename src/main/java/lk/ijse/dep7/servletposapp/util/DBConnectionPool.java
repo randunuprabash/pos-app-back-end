@@ -24,7 +24,14 @@ public class DBConnectionPool {
         }
     }
 
-    public static Connection getConnection(){
+    public static synchronized Connection getConnection(){
+        while (connectionPool.isEmpty()){
+            try {
+                DBConnectionPool.class.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         Connection connection = connectionPool.get(0);
         consumerPool.add(connection);
         connectionPool.remove(connection);
@@ -32,17 +39,19 @@ public class DBConnectionPool {
         return connection;
     }
 
-    public static void releaseConnection(Connection connection){
+    public static synchronized void releaseConnection(Connection connection){
         connectionPool.add(connection);
         consumerPool.remove(connection);
         printLog();
+        DBConnectionPool.class.notify();
     }
 
-    public static void releaseAllConnections(){
+    public static synchronized void releaseAllConnections(){
         for (Connection connection : consumerPool) {
             connectionPool.add(connection);
         }
         consumerPool.clear();
+        DBConnectionPool.class.notifyAll();
         printLog();
     }
 

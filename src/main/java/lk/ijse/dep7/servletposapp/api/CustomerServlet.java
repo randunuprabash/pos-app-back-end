@@ -53,7 +53,7 @@ public class CustomerServlet extends HttpServlet {
                         rst.getString("address")));
             }
 
-            DBConnectionPool.releaseConnection(connection);
+//            DBConnectionPool.releaseConnection(connection);
 
             if (id != null && customers.isEmpty()){
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
