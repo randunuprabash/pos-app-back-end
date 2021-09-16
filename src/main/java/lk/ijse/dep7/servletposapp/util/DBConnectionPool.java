@@ -28,12 +28,14 @@ public class DBConnectionPool {
         Connection connection = connectionPool.get(0);
         consumerPool.add(connection);
         connectionPool.remove(connection);
+        printLog();
         return connection;
     }
 
     public static void releaseConnection(Connection connection){
         connectionPool.add(connection);
         consumerPool.remove(connection);
+        printLog();
     }
 
     public static void releaseAllConnections(){
@@ -41,6 +43,11 @@ public class DBConnectionPool {
             connectionPool.add(connection);
         }
         consumerPool.clear();
+        printLog();
+    }
+
+    private static void printLog(){
+        System.out.printf("[Available Connections=%d, Consumed Connections=%d]\n", connectionPool.size(), consumerPool.size());
     }
 
 }
