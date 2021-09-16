@@ -6,10 +6,10 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DBConnectionTest {
+class DBConnectionPoolTest {
 
     @Test
     void getConnection() throws SQLException {
-        assertNotNull(DBConnection.getConnection());
+        assertNotNull(DBConnectionPool.getConnection());
     }
 }

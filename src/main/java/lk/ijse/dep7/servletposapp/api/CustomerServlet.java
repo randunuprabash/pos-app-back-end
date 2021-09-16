@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.dep7.servletposapp.dto.CustomerDTO;
-import lk.ijse.dep7.servletposapp.util.DBConnection;
+import lk.ijse.dep7.servletposapp.util.DBConnectionPool;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -32,7 +32,7 @@ public class CustomerServlet extends HttpServlet {
         /* GET http://localhost:8080/pos/customers?id=C001  - C001 Customer */
         /* GET http://localhost:8080/pos/customers?id=C100  - 404 */
 
-        try (Connection connection = DBConnection.getConnection()) {
+        try (Connection connection = DBConnectionPool.getConnection()) {
 
             String id = req.getParameter("id");
             String sql = (id == null) ? "SELECT * FROM customer" : "SELECT * FROM customer WHERE id=?";
@@ -75,7 +75,7 @@ public class CustomerServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = DBConnection.getConnection()) {
+        try (Connection connection = DBConnectionPool.getConnection()) {
 
             CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
 
@@ -134,7 +134,7 @@ public class CustomerServlet extends HttpServlet {
                 return;
             }
 
-            try (Connection connection = DBConnection.getConnection()) {
+            try (Connection connection = DBConnectionPool.getConnection()) {
 
                 PreparedStatement stm = connection.prepareStatement("UPDATE customer SET name=?, address=? WHERE id=?");
                 stm.setString(1, customer.getName());
@@ -169,7 +169,7 @@ public class CustomerServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = DBConnection.getConnection()) {
+        try (Connection connection = DBConnectionPool.getConnection()) {
 
             PreparedStatement stm = connection.prepareStatement("DELETE FROM customer WHERE id=?");
             stm.setString(1, id);
