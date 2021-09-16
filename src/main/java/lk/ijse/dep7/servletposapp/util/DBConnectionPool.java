@@ -24,4 +24,23 @@ public class DBConnectionPool {
         }
     }
 
+    public static Connection getConnection(){
+        Connection connection = connectionPool.get(0);
+        consumerPool.add(connection);
+        connectionPool.remove(connection);
+        return connection;
+    }
+
+    public static void releaseConnection(Connection connection){
+        connectionPool.add(connection);
+        consumerPool.remove(connection);
+    }
+
+    public static void releaseAllConnections(){
+        for (Connection connection : consumerPool) {
+            connectionPool.add(connection);
+        }
+        consumerPool.clear();
+    }
+
 }
