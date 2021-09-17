@@ -1,5 +1,6 @@
 package lk.ijse.dep7.servletposapp.api;
 
+
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
@@ -11,6 +12,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.dep7.servletposapp.dto.CustomerDTO;
 import lk.ijse.dep7.servletposapp.util.DBConnectionPool;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -24,6 +29,18 @@ import java.util.List;
 public class CustomerServlet extends HttpServlet {
 
     private final Jsonb jsonb = JsonbBuilder.create();
+    public DataSource connectionPool;
+
+    @Override
+    public void init() throws ServletException {
+        try {
+            Context initContext = new InitialContext();
+            Context envContext = (Context) initContext.lookup("java:/comp/env");
+            connectionPool = (DataSource) envContext.lookup("jdbc/posCP");
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -32,9 +49,7 @@ public class CustomerServlet extends HttpServlet {
         /* GET http://localhost:8080/pos/customers?id=C001  - C001 Customer */
         /* GET http://localhost:8080/pos/customers?id=C100  - 404 */
 
-        try {
-
-            Connection connection = DBConnectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection()) {
 
             String id = req.getParameter("id");
             String sql = (id == null) ? "SELECT * FROM customer" : "SELECT * FROM customer WHERE id=?";
@@ -53,9 +68,7 @@ public class CustomerServlet extends HttpServlet {
                         rst.getString("address")));
             }
 
-//            DBConnectionPool.releaseConnection(connection);
-
-            if (id != null && customers.isEmpty()){
+            if (id != null && customers.isEmpty()) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
@@ -79,7 +92,7 @@ public class CustomerServlet extends HttpServlet {
             return;
         }
 
-        try {
+        try (Connection connection = DBConnectionPool.getConnection()) {
 
             CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
 
@@ -94,8 +107,6 @@ public class CustomerServlet extends HttpServlet {
                 return;
             }
 
-            Connection connection = DBConnectionPool.getConnection();
-
             PreparedStatement stm = connection.prepareStatement("INSERT INTO customer (id, name, address) VALUES (?,?,?)");
 
             stm.setString(1, customer.getId());
@@ -105,10 +116,8 @@ public class CustomerServlet extends HttpServlet {
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
             if (stm.executeUpdate() == 1) {
-                DBConnectionPool.releaseConnection(connection);
                 out.println(jsonb.toJson(customer.getId()));
             } else {
-                DBConnectionPool.releaseConnection(connection);
                 throw new RuntimeException("Failed to save the customer, try again");
             }
 
@@ -142,9 +151,7 @@ public class CustomerServlet extends HttpServlet {
                 return;
             }
 
-            try{
-
-                Connection connection = DBConnectionPool.getConnection();
+            try (Connection connection = DBConnectionPool.getConnection()) {
 
                 PreparedStatement stm = connection.prepareStatement("UPDATE customer SET name=?, address=? WHERE id=?");
                 stm.setString(1, customer.getName());
@@ -152,11 +159,9 @@ public class CustomerServlet extends HttpServlet {
                 stm.setString(3, customer.getId());
 
                 if (stm.executeUpdate() == 1) {
-                    DBConnectionPool.releaseConnection(connection);
                     resp.setContentType("application/json");
                     resp.getWriter().println(jsonb.toJson("OK"));
                 } else {
-                    DBConnectionPool.releaseConnection(connection);
                     throw new RuntimeException("Failed to update the customer");
                 }
 
@@ -181,19 +186,15 @@ public class CustomerServlet extends HttpServlet {
             return;
         }
 
-        try {
-
-            Connection connection = DBConnectionPool.getConnection();
+        try (Connection connection = DBConnectionPool.getConnection()) {
 
             PreparedStatement stm = connection.prepareStatement("DELETE FROM customer WHERE id=?");
             stm.setString(1, id);
 
             if (stm.executeUpdate() == 1) {
-                DBConnectionPool.releaseConnection(connection);
                 resp.setContentType("application/json");
                 resp.getWriter().println(jsonb.toJson("OK"));
             } else {
-                DBConnectionPool.releaseConnection(connection);
                 throw new RuntimeException("Failed to delete the customer");
             }
 

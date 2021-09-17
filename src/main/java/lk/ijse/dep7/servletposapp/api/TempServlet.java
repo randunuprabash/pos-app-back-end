@@ -1,9 +1,13 @@
 package lk.ijse.dep7.servletposapp.api;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lk.ijse.dep7.servletposapp.util.DBConnectionPool;
+
 
 import java.io.IOException;
 
