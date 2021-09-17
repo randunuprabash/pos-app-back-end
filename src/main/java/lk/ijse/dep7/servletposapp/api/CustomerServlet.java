@@ -92,7 +92,7 @@ public class CustomerServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = DBConnectionPool.getConnection()) {
+        try (Connection connection = connectionPool.getConnection()) {
 
             CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
 
@@ -151,7 +151,7 @@ public class CustomerServlet extends HttpServlet {
                 return;
             }
 
-            try (Connection connection = DBConnectionPool.getConnection()) {
+            try (Connection connection = connectionPool.getConnection()) {
 
                 PreparedStatement stm = connection.prepareStatement("UPDATE customer SET name=?, address=? WHERE id=?");
                 stm.setString(1, customer.getName());
@@ -186,7 +186,7 @@ public class CustomerServlet extends HttpServlet {
             return;
         }
 
-        try (Connection connection = DBConnectionPool.getConnection()) {
+        try (Connection connection = connectionPool.getConnection()) {
 
             PreparedStatement stm = connection.prepareStatement("DELETE FROM customer WHERE id=?");
             stm.setString(1, id);
