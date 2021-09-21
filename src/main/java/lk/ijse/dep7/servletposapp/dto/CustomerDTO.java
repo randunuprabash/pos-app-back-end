@@ -1,11 +1,8 @@
 package lk.ijse.dep7.servletposapp.dto;
 
-import jakarta.json.bind.annotation.JsonbPropertyOrder;
-
 import java.io.Serializable;
 
-@JsonbPropertyOrder({"id", "name", "address"})
-public class CustomerDTO implements Serializable { /* Bean Spec */
+public class CustomerDTO implements Serializable {
     private String id;
     private String name;
     private String address;
@@ -45,7 +42,7 @@ public class CustomerDTO implements Serializable { /* Bean Spec */
 
     @Override
     public String toString() {
-        return "Customer{" +
+        return "CustomerDTO{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", address='" + address + '\'' +

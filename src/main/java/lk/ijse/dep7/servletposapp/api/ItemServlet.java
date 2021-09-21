@@ -10,22 +10,24 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lk.ijse.dep7.servletposapp.dto.CustomerDTO;
+import lk.ijse.dep7.servletposapp.dto.ItemDTO;
 import lk.ijse.dep7.servletposapp.exception.DuplicateIdentifierException;
 import lk.ijse.dep7.servletposapp.exception.FailedOperationException;
 import lk.ijse.dep7.servletposapp.exception.NotFoundException;
 import lk.ijse.dep7.servletposapp.service.CustomerService;
+import lk.ijse.dep7.servletposapp.service.ItemService;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(urlPatterns = "/customers")
-public class CustomerServlet extends HttpServlet {
+@WebServlet(urlPatterns = "/items")
+public class ItemServlet extends HttpServlet {
 
     private final Jsonb jsonb = JsonbBuilder.create();
 
@@ -40,19 +42,15 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        /* GET http://localhost:8080/pos/customers          - All Customers */
-        /* GET http://localhost:8080/pos/customers?id=C001  - C001 Customer */
-        /* GET http://localhost:8080/pos/customers?id=C100  - 404 */
-
         try (Connection connection = connectionPool.getConnection()) {
 
-            CustomerService customerService = new CustomerService(connection);
-            String id = req.getParameter("id");
+            ItemService itemService = new ItemService(connection);
+            String code = req.getParameter("code");
             String page = req.getParameter("page");
             String size = req.getParameter("size");
 
-            List<CustomerDTO> customers = new ArrayList<>();
-            if (id == null) {
+            List<ItemDTO> items = new ArrayList<>();
+            if (code == null) {
 
                 if (page != null && size != null) {
 
@@ -69,15 +67,15 @@ public class CustomerServlet extends HttpServlet {
                         return;
                     }
 
-                    customers = customerService.findAllCustomers(p, s);
+                    items = itemService.findAllItems(p, s);
                 } else {
-                    customers = customerService.findAllCustomers();
+                    items = itemService.findAllItems();
                 }
             } else {
-                customers.add(customerService.findCustomer(id));
+                items.add(itemService.findItem(code));
             }
 
-            String json = jsonb.toJson(id == null ? customers : customers.get(0));
+            String json = jsonb.toJson(code == null ? items : items.get(0));
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
             out.println(json);
@@ -100,32 +98,36 @@ public class CustomerServlet extends HttpServlet {
 
         try (Connection connection = connectionPool.getConnection()) {
 
-            CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
+            ItemDTO item = jsonb.fromJson(req.getReader(), ItemDTO.class);
 
-            if (customer.getId() == null || !customer.getId().matches("C\\d{3}")) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer id can't be empty");
+            if (item.getCode() == null || !item.getCode().matches("I\\d{3}")) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Item code can't be empty");
                 return;
-            } else if (customer.getName() == null || customer.getName().trim().isEmpty()) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer name can't be empty");
+            } else if (item.getDescription() == null || item.getDescription().trim().isEmpty()) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Item description can't be empty");
                 return;
-            } else if (customer.getAddress() == null || customer.getAddress().trim().isEmpty()) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer address can't be empty");
+            } else if (item.getUnitPrice() == null || item.getUnitPrice().compareTo(new BigDecimal(0)) <= 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid unit price");
+                return;
+            }else if (item.getQtyOnHand() < 0){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid qty on hand");
                 return;
             }
 
-            CustomerService customerService = new CustomerService(connection);
-            customerService.saveCustomer(customer);
+            ItemService itemService = new ItemService(connection);
+            item.setUnitPrice(item.getUnitPrice().setScale(2));
+            itemService.saveItem(item);
 
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
-            out.println(jsonb.toJson(customer.getId()));
+            out.println(jsonb.toJson(item.getCode()));
 
         } catch (JsonbException exp) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         } catch (SQLException | RuntimeException | FailedOperationException exp) {
             throw new RuntimeException(exp);
         } catch (DuplicateIdentifierException e) {
-            throw new RuntimeException("Customer already exits", e);
+            throw new RuntimeException("Item already exits", e);
         }
 
     }
@@ -139,23 +141,26 @@ public class CustomerServlet extends HttpServlet {
         }
 
         try {
-            CustomerDTO customer = jsonb.fromJson(req.getReader(), CustomerDTO.class);
+            ItemDTO item = jsonb.fromJson(req.getReader(), ItemDTO.class);
 
-            if (customer.getId() == null || !customer.getId().matches("C\\d{3}")) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer id can't be empty");
+            if (item.getCode() == null || !item.getCode().matches("I\\d{3}")) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Item code can't be empty");
                 return;
-            } else if (customer.getName() == null || customer.getName().trim().isEmpty()) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer name can't be empty");
+            } else if (item.getDescription() == null || item.getDescription().trim().isEmpty()) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Item description can't be empty");
                 return;
-            } else if (customer.getAddress() == null || customer.getAddress().trim().isEmpty()) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Customer address can't be empty");
+            } else if (item.getUnitPrice() == null || item.getUnitPrice().compareTo(new BigDecimal(0)) <= 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid unit price");
+                return;
+            }else if (item.getQtyOnHand() < 0){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid qty on hand");
                 return;
             }
 
             try (Connection connection = connectionPool.getConnection()) {
 
-                CustomerService customerService = new CustomerService(connection);
-                customerService.updateCustomer(customer);
+                ItemService itemService = new ItemService(connection);
+                itemService.updateItem(item);
                 resp.setContentType("application/json");
                 resp.getWriter().println(jsonb.toJson("OK"));
 
@@ -173,19 +178,17 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        /* DELETE http://localhost:8080/pos/customers?id=C001 */
+        String code = req.getParameter("code");
 
-        String id = req.getParameter("id");
-
-        if (id == null || !id.matches("C\\d{3}")) {
+        if (code == null || !code.matches("I\\d{3}")) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
         try (Connection connection = connectionPool.getConnection()) {
 
-            CustomerService customerService = new CustomerService(connection);
-            customerService.deleteCustomer(id);
+            ItemService itemService = new ItemService(connection);
+            itemService.deleteItem(code);
             resp.setContentType("application/json");
             resp.getWriter().println(jsonb.toJson("OK"));
 
