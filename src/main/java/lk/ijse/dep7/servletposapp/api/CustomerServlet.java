@@ -69,6 +69,9 @@ public class CustomerServlet extends HttpServlet {
                         return;
                     }
 
+                    resp.setHeader("X-Total-Count", customerService.getCustomersCount() + "");
+                    resp.setHeader("Access-Control-Expose-Headers", "X-Total-Count");
+                    resp.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:1234");
                     customers = customerService.findAllCustomers(p, s);
                 } else {
                     customers = customerService.findAllCustomers();

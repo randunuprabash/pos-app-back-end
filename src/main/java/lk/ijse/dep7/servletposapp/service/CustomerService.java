@@ -52,6 +52,13 @@ public class CustomerService {
         }
     }
 
+    public long getCustomersCount() throws SQLException{
+        Statement stm = connection.createStatement();
+        ResultSet rst = stm.executeQuery("SELECT COUNT(*) FROM customer");
+        rst.next();
+        return rst.getLong(1);
+    }
+
     boolean existCustomer(String id) throws SQLException {
         PreparedStatement pstm = connection.prepareStatement("SELECT id FROM customer WHERE id=?");
         pstm.setString(1, id);
