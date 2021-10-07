@@ -147,6 +147,8 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+
         if (req.getContentType() == null || !req.getContentType().equals("application/json")) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
@@ -171,6 +173,7 @@ public class CustomerServlet extends HttpServlet {
                 CustomerService customerService = new CustomerService(connection);
                 customerService.updateCustomer(customer);
                 resp.setContentType("application/json");
+                resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
                 resp.getWriter().println(jsonb.toJson("OK"));
 
             } catch (SQLException | FailedOperationException ex) {
@@ -188,6 +191,7 @@ public class CustomerServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         /* DELETE http://localhost:8080/pos/customers?id=C001 */
+        resp.setHeader("Access-Control-Allow-Origin", "*");
 
         String id = req.getParameter("id");
 
@@ -201,6 +205,7 @@ public class CustomerServlet extends HttpServlet {
             CustomerService customerService = new CustomerService(connection);
             customerService.deleteCustomer(id);
             resp.setContentType("application/json");
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             resp.getWriter().println(jsonb.toJson("OK"));
 
         } catch (SQLException | FailedOperationException exp) {
