@@ -91,9 +91,12 @@ public class CustomerServlet extends HttpServlet {
             }
 
             String json = jsonb.toJson(id == null ? customers : customers.get(0));
+            resp.setHeader("X-Something", "To understand");
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
             out.println(json);
+            out.println("From Servlet");
+            out.close();
 
         } catch (SQLException | FailedOperationException ex) {
             throw new RuntimeException(ex);
