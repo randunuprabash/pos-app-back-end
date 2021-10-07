@@ -53,6 +53,8 @@ public class CustomerServlet extends HttpServlet {
 
 //        resp.setHeader("Access-Control-Allow-Origin", "*");
 
+        System.out.println("Do GET()");
+
         try (Connection connection = connectionPool.getConnection()) {
 
             CustomerService customerService = new CustomerService(connection);
