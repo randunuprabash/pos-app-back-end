@@ -37,12 +37,12 @@ public class CustomerServlet extends HttpServlet {
 
     }
 
-    @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, DELETE");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    }
+//    @Override
+//    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+//        resp.setHeader("Access-Control-Allow-Origin", "*");
+//        resp.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, DELETE");
+//        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
+//    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -51,7 +51,7 @@ public class CustomerServlet extends HttpServlet {
         /* GET http://localhost:8080/pos/customers?id=C001  - C001 Customer */
         /* GET http://localhost:8080/pos/customers?id=C100  - 404 */
 
-        resp.setHeader("Access-Control-Allow-Origin", "*");
+//        resp.setHeader("Access-Control-Allow-Origin", "*");
 
         try (Connection connection = connectionPool.getConnection()) {
 
@@ -79,7 +79,7 @@ public class CustomerServlet extends HttpServlet {
                     }
 
                     resp.setHeader("X-Total-Count", customerService.getCustomersCount() + "");
-                    resp.setHeader("Access-Control-Expose-Headers", "X-Total-Count");
+//                    resp.setHeader("Access-Control-Expose-Headers", "X-Total-Count");
                     customers = customerService.findAllCustomers(p, s);
                 } else {
                     customers = customerService.findAllCustomers();
@@ -104,7 +104,7 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        resp.setHeader("Access-Control-Allow-Origin", "*");
+//        resp.setHeader("Access-Control-Allow-Origin", "*");
 
         if (req.getContentType() == null || !req.getContentType().equals("application/json")) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -147,7 +147,7 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        resp.setHeader("Access-Control-Allow-Origin", "*");
+//        resp.setHeader("Access-Control-Allow-Origin", "*");
 
         if (req.getContentType() == null || !req.getContentType().equals("application/json")) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
