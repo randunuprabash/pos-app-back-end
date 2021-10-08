@@ -76,6 +76,7 @@ public class OrderServlet extends HttpServlet {
                         return;
                     }
 
+                    resp.setHeader("X-Total-Count", orderService.getSearchOrdersCount(q == null? "": q) + "");
                     orders = orderService.searchOrders(q == null? "": q, p, s);
                 } else {
                     resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Page and size should be specified to search");

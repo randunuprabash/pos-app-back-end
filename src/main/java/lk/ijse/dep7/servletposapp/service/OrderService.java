@@ -135,6 +135,41 @@ public class OrderService {
 
     }
 
+    public long getSearchOrdersCount(String query) throws SQLException {
+
+        String[] searchWords = query.split("\\s");
+
+        StringBuilder sqlBuilder = new StringBuilder("SELECT COUNT(*) \n" +
+                "FROM `order` o\n" +
+                "         INNER JOIN customer c on o.customer_id = c.id\n" +
+                "         INNER JOIN\n" +
+                "     (SELECT order_id, SUM(qty * unit_price) AS total FROM order_detail od GROUP BY order_id) AS order_total\n" +
+                "     ON o.id = order_total.order_id\n" +
+                "WHERE (order_id LIKE ?\n" +
+                "    OR date LIKE ?\n" +
+                "    OR customer_id LIKE ?\n" +
+                "    OR name LIKE ?) ");
+
+        for (int i = 1; i < searchWords.length; i++) {
+            sqlBuilder.append("AND (\n" +
+                    "            order_id LIKE ?\n" +
+                    "        OR date LIKE ?\n" +
+                    "        OR customer_id LIKE ?\n" +
+                    "        OR name LIKE ?)");
+        }
+
+        PreparedStatement stm = connection.prepareStatement(sqlBuilder.toString());
+
+        for (int i = 0; i < searchWords.length * 4; i++) {
+            stm.setString(i + 1, "%" + searchWords[(i / 4)] + "%");
+        }
+
+        ResultSet rst = stm.executeQuery();
+        rst.next();
+        return rst.getLong(1);
+
+    }
+
     public List<OrderDTO> searchOrders(String query, int page, int size) throws FailedOperationException {
 
         List<OrderDTO> orderList = new ArrayList<>();
