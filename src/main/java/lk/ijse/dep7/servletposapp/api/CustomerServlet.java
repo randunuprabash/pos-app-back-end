@@ -53,7 +53,7 @@ public class CustomerServlet extends HttpServlet {
 
 //        resp.setHeader("Access-Control-Allow-Origin", "*");
 
-        System.out.println("Do GET()");
+
 
         try (Connection connection = connectionPool.getConnection()) {
 
@@ -80,8 +80,9 @@ public class CustomerServlet extends HttpServlet {
                         return;
                     }
 
-                    resp.setHeader("X-Total-Count", customerService.getCustomersCount() + "");
+//                    resp.setHeader("X-Total-Count", customerService.getCustomersCount() + "");
 //                    resp.setHeader("Access-Control-Expose-Headers", "X-Total-Count");
+//                    resp.setHeader("Access-Control-Allow-Origin","*");
                     customers = customerService.findAllCustomers(p, s);
                 } else {
                     customers = customerService.findAllCustomers();
@@ -96,7 +97,7 @@ public class CustomerServlet extends HttpServlet {
             PrintWriter out = resp.getWriter();
             out.println(json);
 //            out.println("From Servlet");
-//            out.close();
+            out.close();
 //            out.close(); out.flush(); response.flushBuffer();
 
         } catch (SQLException | FailedOperationException ex) {
